@@ -1,13 +1,9 @@
-- it seems that the graph should be promoted to the central abstaction
-every block synopsis adds to the vertice set. All vertices are draggable. All vertices have two sets:
-src arros and tgt arrows. This allows the dragging to quickly and correctly update the coordinates of 
-edges. also. this allows the graph structure to be stored easily and rebuilt easily. and allows for an entire
-graph to be dragged. 
+- need concat 
 
 - allow for multiple settings windows let them be draggable and add a blue line 
 to the node they are editing. This allows one to see the forest and the trees :)
 
-- model size (number of parameteers and estimated MB/KB)
+- model size calculation (number of parameteers and estimated MB/KB)
 
 - for group drage it seems that drag target should be extended to a list that allows
 for multiple nodes to be dragged.
