@@ -1,0 +1,37 @@
+- it seems that the graph should be promoted to the central abstaction
+every block synopsis adds to the vertice set. All vertices are draggable. All vertices have two sets:
+src arros and tgt arrows. This allows the dragging to quickly and correctly update the coordinates of 
+edges. also. this allows the graph structure to be stored easily and rebuilt easily. and allows for an entire
+graph to be dragged. 
+
+- allow for multiple settings windows let them be draggable and add a blue line 
+to the node they are editing. This allows one to see the forest and the trees :)
+
+- model size (number of parameteers and estimated MB/KB)
+
+- for group drage it seems that drag target should be extended to a list that allows
+for multiple nodes to be dragged.
+
+- build in cycle detection to alert user that they accidentally introduced a cycle :) and don't let them
+
+Drag should be a class that uses CURRENT DRAG TARGET as its its drag
+elem and uses functions defined in global scope to allow for event listener removal
+
+for standard feed forward we define a "synopsis" block. we can then add arcs within a synopsis
+we can then form DAG structures
+
+- note this front end Dragg UI can be used for building knowledge graphs
+
+plug into a Jax.numpy back end :)
+
+1. Window system use linked list
+	- incorporates minimize and maximize ops with a window bar
+	- the linked list makes this easy
+2. Post and get data fetch wrappers
+2. H re-write to Bea({/*init params*/})
+	- That is, re-factor part into constructor
+
+for drawing lines between divs we can use a dynamically sized svg
+
+
+multi/chainable drag ie select multiple elems to drag
