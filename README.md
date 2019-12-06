@@ -5,6 +5,7 @@ Below is a sample screen shot of the UI in its current development stage.
 ![Building Inception like ANN](/images/inception-like.png)
 
 ### Timeline
-The Current stage: developing UI
-Next Stage: Integrate with Server
-TBC...
+* Develop basic UI
+* Integrate with Server
+* Provide Automated Metrics (Eg Learning curves, Accuracy, F1 etc...)
+* TBC
