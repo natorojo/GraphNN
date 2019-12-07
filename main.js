@@ -1,3 +1,105 @@
+class Node{
+	constructor(key){
+		this.key = key;
+		this.next = null;
+		this.prev = null;
+	}
+}
+
+class LinkedList{
+	constructor(){
+		this.head = null;
+		this.tail = null;
+		this.size = 0
+	}
+
+	log(){
+		console.log('check fwd')
+		let current = this.head;
+		while(current){
+			console.log(current.key);
+			current = current.next;
+		}
+		console.log('check bwd')
+		current = this.tail;
+		while(current){
+			console.log(current.key);
+			current = current.prev;
+		}
+	}
+
+	insert(key,returnNode=true){
+		this.size ++;
+		let newNode = new Node(key);
+		if(this.head === null){
+			this.head = newNode;
+			this.tail = newNode;
+		}else{
+			let tail = this.tail;
+			newNode.prev = tail
+			tail.next = newNode
+			this.tail = newNode
+		}
+		if(returnNode){
+			return newNode;
+		}
+	}
+
+	insertBefore(key,next,returnNode=true){
+		this.size ++;
+		let newNode = new Node(key);
+		let nextPrev = next.prev;
+		next.prev = newNode;
+		newNode.next = next;
+		if( next === this.head){
+			this.head = newNode
+		}else{
+			newNode.prev = nextPrev;
+			nextPrev.next = newNode;
+		}
+		if(returnNode){
+			return newNode;
+		}
+	}
+
+	insertAfter(key,prev,returnNode=true){
+		this.size ++;
+		let newNode = new Node(key);
+		let prevNext = prev.next;
+		prev.next = newNode;
+		newNode.prev = prev;
+		if(prev === this.tail){
+			this.tail = newNode;
+		}else{
+			newNode.next = prevNext;
+			prevNext.prev = newNode;
+		}
+		if(returnNode){
+			return newNode;
+		}
+	}
+
+	remove(node){
+		this.size --;
+		if(node === this.head){
+			this.head = node.next;
+			this.head.prev = null;
+		}else if(node === this.tail){
+			this.tail = node.prev;
+			this.tail.next = null;
+		}else{
+			let prev = node.prev;
+			let next = node.next;
+			prev.next = next;
+			next.prev = prev;
+		}
+	}
+
+	size(){
+		return this.size;
+	}
+}
+
 class Network{
 	constructor(opts){
 		this._V = {};
@@ -32,6 +134,7 @@ class Network{
 	--------------------------------------------*/
 
 	openVertexSettings(UID){
+		let vertexData = this._V[UID];
 		const center = this.getVertexCenter(UID);
 		const width = 512;
 		const height = 200;
@@ -89,7 +192,38 @@ class Network{
 						this.addSoftmax(UID,layerTgt);
 					})
 				.pop()//end layers options
-				.div().class('nodeLayers')
+				.div().class('nodeLayers').ex(layerTgt=>{
+					let current = vertexData.layers.head;
+					while(current){
+						let layerData = current.key;
+						switch(layerData.type){
+							case 'input':
+								this.inputLayerView(layerData,layerTgt);
+								break;
+							case 'linear':
+								this.linearLayerView(layerData,layerTgt);
+								break;
+							case 'conv':
+								this.convLayerView(layerData,layerTgt);
+								break;
+							case 'pool':
+								this.maxPoolView(layerData,layerTgt);
+								break;
+							case 'activation':
+								this.activationView(layerData,layerTgt);
+								break;
+							case 'reshape':
+								this.reshapeView(layerData,layerTgt);
+								break;
+							case 'softmax':
+								this.softmaxView(layerData,layerTgt);
+								break;
+							default:
+								break;
+						}
+						current = current.next;
+					}
+				})
 			.pop()
 		.make(dashboard);
 	}
@@ -97,58 +231,212 @@ class Network{
 	/*layer adding methods*/
 
 	addInputLayer(UID,layerTgt){
+		let vertexData = this._V[UID];
+		let layerData = {
+			type:'input',
+			shape:null
+		};
+		vertexData.layers.insert(layerData);
+		this.inputLayerView(layerData,layerTgt);
+	}
+
+	inputLayerView(layerData,layerTgt){
 		new Beatrice().class('inputLayer layer')
 			.span().text('Input: ')
-			.input().placeholder('shape: X,Y,Z...')
+			.input().value(layerData.shape).placeholder('shape: X,Y,Z...').keyup(e=>{
+				let tgt = e.target;
+				layerData.shape = tgt.value;
+			})
 		.make(layerTgt);
 	}
 
 	addLinearLayer(UID,layerTgt){
+		let vertexData = this._V[UID];
+		let layerData = {
+			type:'linear',
+			inDim:null,
+			outDim:null
+		};
+		vertexData.layers.insert(layerData);
+		this.linearLayerView(layerData,layerTgt);
+	}
+
+	linearLayerView(layerData,layerTgt){
 		new Beatrice().class('linearLayer layer')
 			.span().text('Linear: ')
-			.input().placeholder('Input dim')
-			.input().placeholder('Output dim.')
+			.input().value(layerData.inDim)
+				.placeholder('Input dim')
+				.keyup(e=>{
+					const val = e.target.value;
+					layerData.inDim = val;
+				})
+			.input().value(layerData.outDim)
+				.placeholder('Output dim.')
+				.keyup(e=>{
+					const val = e.target.value;
+					layerData.outDim = val;
+				})
 		.make(layerTgt);
 	}
 
 	addConvLayer(UID,layerTgt){
+		let vertexData = this._V[UID];
+		let layerData = {
+			type:'conv',
+			cin:null,
+			cout:null,
+			f:null,
+			s:null,
+			p:null
+		};
+		vertexData.layers.insert(layerData);
+		this.convLayerView(layerData,layerTgt);
+	}
+
+	convLayerView(layerData,layerTgt){
 		new Beatrice().class('convLayer layer')
 			.span().text('Conv: ')
-			.input().placeholder('C-in')
-			.input().placeholder('C-out')
-			.input().placeholder('f')
-			.input().placeholder('s')
-			.input().placeholder('p')
+			.input()
+				.value(layerData.cin)
+				.placeholder('C-in')
+				.keyup(e=>{
+					const val = e.target.value;
+					layerData.cin = val;
+				})
+			.input()
+				.value(layerData.cout)
+				.placeholder('C-out')
+				.keyup(e=>{
+					const val = e.target.value;
+					layerData.cout = val;
+				})
+			.input()
+				.value(layerData['f'])
+				.placeholder('f')
+				.keyup(e=>{
+					const val = e.target.value;
+					layerData.f = val;
+				})
+			.input()
+				.value(layerData['s'])
+				.placeholder('s')
+				.keyup(e=>{
+					const val = e.target.value;
+					layerData.s = val;
+				})
+			.input()
+				.value(layerData['p'])
+				.placeholder('p')
+				.keyup(e=>{
+					const val = e.target.value;
+					layerData.p = val;
+				})
 		.make(layerTgt);
 	}
 
 	addMaxPoolLayer(UID,layerTgt){
+		let vertexData = this._V[UID];
+		let layerData = {
+			type:'pool',
+			f:null,
+			s:null,
+		};
+		vertexData.layers.insert(layerData);
+		this.maxPoolView(layerData,layerTgt);
+	}
+
+	maxPoolView(layerData,layerTgt){
 		new Beatrice().class('maxPoolLayer layer')
 			.span().text('Pool: ')
-			.input().placeholder('f')
-			.input().placeholder('s')
+			.input()
+				.value(layerData.f)
+				.placeholder('f')
+				.keyup(e=>{
+					const val = e.target.value;
+					layerData.f = val;
+				})
+			.input()
+				.value(layerData.s)
+				.placeholder('s')
+				.keyup(e=>{
+					const val = e.target.value;
+					layerData.s = val;
+				})
 		.make(layerTgt);
 	}
 
 	addActivation(UID,layerTgt){
+		let vertexData = this._V[UID];
+		let layerData = {
+			type:'activation',
+			activation:null
+		};
+		vertexData.layers.insert(layerData);
+		this.activationView(layerData,layerTgt);
+	}
+
+	activationView(layerData,layerTgt){
 		new Beatrice().class('activationLayer layer')
 			.span().text('Activation: ')
-			.select().kids()
-				.option().text('ReLU')
-				.option().text('Tanh')
-				.option().text('Sigmoid')
+			.select()
+				.on('change',e=>{
+					let tgt = e.target;
+					const activation = tgt.options[tgt.selectedIndex].value;
+					layerData.activation = activation;
+				})
+			.kids()
+				.option()
+					.text('ReLU')
+					.if(layerData.activation === 'ReLU',iH=>{
+						iH.setAtts({selected:true})
+					})
+				.option()
+					.text('Tanh')
+					.if(layerData.activation === 'Tanh',iH=>{
+						iH.setAtts({selected:true})
+					})
+				.option()
+					.text('Sigmoid')
+					.if(layerData.activation === 'Sigmoid',iH=>{
+						iH.setAtts({selected:true})
+					})
 			.pop()
 		.make(layerTgt);
 	}
 
 	addReshape(UID,layerTgt){
+		let vertexData = this._V[UID];
+		let layerData = {
+			type:'reshape',
+			shape:null
+		};
+		vertexData.layers.insert(layerData);
+		this.reshapeView(layerData,layerTgt);
+	}
+
+	reshapeView(layerData,layerTgt){
 		new Beatrice().class('reshapeLayer layer')
 			.span().text('Reshape: ')
-			.input().placeholder('shape: X,Y,Z... or flatten')
+			.input()
+				.value(layerData.shape)
+				.placeholder('shape: X,Y,Z... or flatten')
+				.keyup(e=>{
+					const val = e.target.value;
+					layerData.shape = val;
+				})
 		.make(layerTgt);
 	}
 
 	addSoftmax(UID,layerTgt){
+		let vertexData = this._V[UID];
+		let layerData = {
+			type:'softmax'
+		};
+		vertexData.layers.insert(layerData);
+		this.softmaxView(layerData,layerTgt);
+	}
+
+	softmaxView(layerData,layerTgt){
 		new Beatrice().class('softmaxLayer layer')
 			.span().text('Softmax')
 		.make(layerTgt);
@@ -177,7 +465,8 @@ class Network{
 					//out arrows
 					out:[],
 					//in arrows
-					in:[]
+					in:[],
+					layers:new LinkedList()
 				}
 			})
 			.on('mousedown',(e)=>{
@@ -190,6 +479,8 @@ class Network{
 				return false;
 			})
 		.make(this._vContainer);
+		console.log(this._V);
+		console.log(this._A);
 	}
 
 	linkVertexes(e){
@@ -307,6 +598,7 @@ class Network{
         });
     }
 }
+
 
 
 
