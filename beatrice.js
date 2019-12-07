@@ -143,7 +143,6 @@ const mu = (elem)=>{
 };
 //what a drag... another drag class....
 //currently only draggable relative to a parent
-/*
 class Drag{
     constructor(opts){
 
@@ -223,11 +222,6 @@ class Drag{
         console.log('it definitly has to do with the methods...');
     }
 };
-*/
-
-
-
-
 
 class Beatrice{
     constructor(opts={}){
@@ -300,6 +294,13 @@ class Beatrice{
         }
         return this.proxy;
     }//end setAtts
+
+    svg(){
+        let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        this.currentScopeElem.appendChild(svg);
+        this.currentElem = svg;
+        return this.proxy;
+    }
 
     class(classes){
         this.currentElem.setAttribute('class',classes);

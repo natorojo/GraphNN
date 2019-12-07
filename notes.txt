@@ -1,3 +1,11 @@
+- add abstraction layer that allows for adding a block which can then have
+graph structure defined within it. 
+
+- get copy block working
+
+- get "jsonify" net/block nets
+	-a method that extracts the graph strucuture of the network
+
 - need concat 
 
 - allow for multiple settings windows let them be draggable and add a blue line 

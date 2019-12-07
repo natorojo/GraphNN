@@ -134,7 +134,13 @@ class Network{
 	--------------------------------------------*/
 
 	openVertexSettings(UID){
+		///do this to avoid the case that this triggers drag start
+		this.dragging = false;
+
 		let vertexData = this._V[UID];
+		//note center is relative to vContainer so we need to get that
+		//vcontainer rectangle
+		const vcr = this._vContainer.getBoundingClientRect();
 		const center = this.getVertexCenter(UID);
 		const width = 512;
 		const height = 200;
@@ -142,8 +148,8 @@ class Network{
 			position:'absolute',
 			height:height+'px',
 			width:width+'px',
-			left:Math.max(center[0] - width/2,4)+'px',
-			top:Math.max(center[1] - height/2,4)+'px'
+			left:Math.max(center[0] - width/2+vcr.left,4)+'px',
+			top:Math.max(center[1] - height/2+vcr.top,4)+'px'
 		};
 		new Beatrice()
 			.class('vertexSettingsContainer')
@@ -479,24 +485,26 @@ class Network{
 				return false;
 			})
 		.make(this._vContainer);
-		console.log(this._V);
-		console.log(this._A);
 	}
 
 	linkVertexes(e){
+		console.log('link')
 		let tgt = e.target;
 		//this is the UID for the event target
 		const UID = tgt.dataset.uid;
 		if(!this.linking){
+			console.log('start link')
 			tgt.classList.add('linking');
 			this.linkSrc = UID;
 			this.linking = true;
 		}else if(this.linking && this.linkSrc == UID){
+			console.log('src is target')
 			//tgt same as source so
 			//reset to non-linking state
 			this.linking = false;
 			this._V[UID].elem.classList.remove('linking');
 		}else{
+			console.log('linked')
 			//src center
 			const srcCoords = this.getVertexCenter(this.linkSrc);
 			//tgt center
@@ -520,8 +528,11 @@ class Network{
 	}
 
 	getVertexCenter(UID){
-		let r = this._V[UID].elem.getBoundingClientRect();
-		return [r.x + r.width/2,r.y + r.height/2];
+		//rectangle data
+		const r = this._V[UID].elem.getBoundingClientRect();
+		//vertex container rectantl
+		const vcr = this._vContainer.getBoundingClientRect();
+		return [r.x + r.width/2 - vcr.left,r.y + r.height/2 - vcr.top];
 	}
 
 	drawLine(x1,y1,x2,y2){
@@ -555,10 +566,14 @@ class Network{
         this.mouseStartY = event.clientY;
 
         
-
+        //get v-container offsets
+        const vContOffest = this._vContainer.getBoundingClientRect();
+        //get drag target offsets
         const dragOffsets = event.target.getBoundingClientRect();
-        const tgtStartX = dragOffsets.left;
-        const tgtStartY = dragOffsets.top;
+
+        //must subtract vContainer offsets AND border
+        const tgtStartX = dragOffsets.left - vContOffest.left-1;
+        const tgtStartY = dragOffsets.top - vContOffest.top-1;
 
         tgt.dataset.startX = tgtStartX;
         tgt.dataset.startY = tgtStartY;
@@ -573,11 +588,22 @@ class Network{
 
     onDrag(){
     	if(!this.dragging){return};
-    	const x = event.clientX;// Get the horizontal coordinate
-        const y = event.clientY;// Get the vertical coordinate
+    	//get offsets to keep delta within the container
+    	const vContOffets = this._vContainer.getBoundingClientRect();
+
+    	// Get the horizontal coordinate
+    	const x = event.clientX;
+    	// Get the vertical coordinate
+        const y = event.clientY;
+
         //calculate mouse delta
-        const deltaX = parseInt(this.dragTarget.dataset.startX) + x - this.mouseStartX;
-        const deltaY = parseInt(this.dragTarget.dataset.startY) + y - this.mouseStartY;
+        let deltaX = parseInt(this.dragTarget.dataset.startX) + x - this.mouseStartX;
+        let deltaY = parseInt(this.dragTarget.dataset.startY) + y - this.mouseStartY;
+
+        //truncate deltas to stay in the block
+        deltaX = Math.min(Math.max(deltaX,4),vContOffets.width - 84);
+        deltaY = Math.min(Math.max(deltaY,4),vContOffets.height - 44);
+
         const styleStr = 'left:'+deltaX+'px;top:'+deltaY+'px;';
         this.dragTarget.setAttribute('style',styleStr);
 
@@ -599,17 +625,50 @@ class Network{
     }
 }
 
+const addBlock = ()=>{
+	let bindObj = {};
+	new Beatrice({bindObj:bindObj})
+		.class('block')
+		.bind('dragElem')
+		.div().class('blackBox').kids()
+			.button().text('edit').click(()=>{
+				bindObj.glassBox.classList.remove('hide');
+			})
+			.p().bind('blackBoxName').text('Set a Name')
+		.pop()
+		.div().bind('glassBox').kids()
+			.div()
+				.class('blockHeader')
+				.bind('anchorElem')
+			.kids()
+				.button().text('+').click(()=>{
+					N.addVertex();
+				})
+				.button().text('_').click(()=>{
+					bindObj.glassBox.classList.add('hide');
+				})
+				.input().placeholder('block name').keyup(e=>{
+					const val = e.target.value;
+					bindObj.blackBoxName.innerText = val;
+				})
+			.pop()
+			.div().class('blockBody').kids()
+				.svg().bind('edgeTarget')
+				.div().bind('vContainer')
+			.pop()
+		.pop()
+	.make(dashboard);
+
+	let N = new Network({
+		svg:bindObj.edgeTarget,
+		vContainer:bindObj.vContainer
+	});
+
+	new Drag(bindObj);
+};
 
 
-
-let N = new Network({
-	svg:edgeTarget,
-	vContainer:dashboard
-})
-
-
-new Beatrice({root:'button'}).class('addVertex').text('Add vertex').click(()=>{
-	N.addVertex();
-}).make(dashboard);
+new Beatrice()
+.class('addBlock').text('Add block').click(addBlock).make(dashboard);
 
 

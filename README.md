@@ -9,3 +9,6 @@ Below is a sample screen shot of the UI in its current development stage.
 * Integrate with Server
 * Provide Automated Metrics (Eg Learning curves, Accuracy, F1 etc...)
 * TBC
+
+Below is a sample screen shot of the UI using the glass/black box option to collapse/open a block
+![Inception black/glass boxing](/images/glass-boxing.png)
